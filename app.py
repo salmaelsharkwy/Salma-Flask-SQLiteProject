@@ -1,25 +1,22 @@
 import sqlite3
 import os
-from datetime import datetime, timedelta
+from datetime import datetime
 from flask import Flask, render_template, request, redirect, url_for, flash, session
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
 app.secret_key = 'secure_key_change_in_production'
-app.permanent_session_lifetime = timedelta(days=30) # Session duration
 
-# Upload Configuration
+# Upload Config
 app.config['UPLOAD_FOLDER'] = os.path.join('static', 'profile_pics')
-app.config['MAX_CONTENT_LENGTH'] = 5 * 1024 * 1024  # 5MB Limit
+app.config['MAX_CONTENT_LENGTH'] = 5 * 1024 * 1024
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
-
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
-# --- Database ---
 def get_db():
     conn = sqlite3.connect('database.db')
     conn.row_factory = sqlite3.Row
@@ -27,7 +24,6 @@ def get_db():
 
 def init_db():
     db = get_db()
-    # Ensure table exists with all columns
     db.execute('''
         CREATE TABLE IF NOT EXISTS users (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -47,11 +43,11 @@ with app.app_context():
 
 @app.route('/')
 def home():
-    # If not logged in, go to login
+    # 1. لو مش مسجل أصلاً -> روح login
     if 'user_id' not in session:
         return redirect(url_for('login'))
     
-    # If logged in, show dashboard
+    # 2. لو مسجل، نتأكد إنك موجود في الداتابيز
     db = get_db()
     user = db.execute('SELECT * FROM users WHERE id = ?', (session['user_id'],)).fetchone()
     db.close()
@@ -59,21 +55,19 @@ def home():
     if user:
         return render_template('dashboard.html', user=user)
     else:
-        # User ID in session but not in DB (rare case)
+        # 3. صمام الأمان: لو السيشن موجود بس اليوزر اتمسح -> امسح السيشن وروح login
+        # (دي اللي كانت بتعمل Loop)
         session.clear()
         return redirect(url_for('login'))
 
-# FIXED: Renamed function from 'login_page' to 'login' to match HTML
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-    # If already logged in, go to dashboard
     if 'user_id' in session:
         return redirect(url_for('home'))
     
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
-        remember = request.form.get('remember')
         
         db = get_db()
         user = db.execute('SELECT * FROM users WHERE username = ?', (username,)).fetchone()
@@ -81,21 +75,12 @@ def login():
 
         if user and check_password_hash(user['password'], password):
             session['user_id'] = user['id']
-            session['username'] = user['username']
-            
-            # Handle Remember Me
-            if remember:
-                session.permanent = True
-            else:
-                session.permanent = False
-
-            # Update Last Login
+            # تحديث وقت الدخول
             conn = get_db()
             now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             conn.execute('UPDATE users SET last_login = ? WHERE id = ?', (now, user['id']))
             conn.commit()
             conn.close()
-            
             return redirect(url_for('home'))
         else:
             flash('Invalid username or password.', 'error')
@@ -134,27 +119,19 @@ def register():
 @app.route('/upload_pic', methods=['POST'])
 def upload_pic():
     if 'user_id' not in session: return redirect(url_for('login'))
-    
     file = request.files.get('profile_pic')
-    
-    if file and file.filename != '' and allowed_file(file.filename):
+    if file and allowed_file(file.filename):
         filename = secure_filename(file.filename)
         unique_name = f"user_{session['user_id']}_{int(datetime.now().timestamp())}_{filename}"
-        
         file.save(os.path.join(app.config['UPLOAD_FOLDER'], unique_name))
         
         db = get_db()
         db.execute('UPDATE users SET profile_pic = ? WHERE id = ?', (unique_name, session['user_id']))
         db.commit()
         db.close()
-        
         flash('Profile picture updated!', 'success')
-    else:
-        flash('Invalid file or no file selected.', 'error')
-
     return redirect(url_for('home'))
 
-# FIXED: Added missing route for forgot_password
 @app.route('/forgot_password')
 def forgot_password():
     return render_template('forgot_password.html')
@@ -162,7 +139,6 @@ def forgot_password():
 @app.route('/logout')
 def logout():
     session.clear()
-    flash('You have been logged out.', 'info')
     return redirect(url_for('login'))
 
 if __name__ == '__main__':
