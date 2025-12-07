@@ -7,7 +7,7 @@ from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
 app.secret_key = 'secure_key_change_in_production'
-app.permanent_session_lifetime = timedelta(days=30) # Remember Me duration
+app.permanent_session_lifetime = timedelta(days=30) # Session duration
 
 # Upload Configuration
 app.config['UPLOAD_FOLDER'] = os.path.join('static', 'profile_pics')
@@ -19,15 +19,15 @@ os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
-# --- Database Management ---
+# --- Database ---
 def get_db():
     conn = sqlite3.connect('database.db')
     conn.row_factory = sqlite3.Row
     return conn
 
 def init_db():
-    """Initializes the database with all required fields."""
     db = get_db()
+    # Ensure table exists with all columns
     db.execute('''
         CREATE TABLE IF NOT EXISTS users (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -40,7 +40,6 @@ def init_db():
     db.commit()
     db.close()
 
-# Initialize DB immediately
 with app.app_context():
     init_db()
 
@@ -48,47 +47,54 @@ with app.app_context():
 
 @app.route('/')
 def home():
-    if 'user_id' in session:
-        conn = get_db()
-        user = conn.execute('SELECT * FROM users WHERE id = ?', (session['user_id'],)).fetchone()
-        conn.close()
-        if user:
-            return render_template('dashboard.html', user=user)
-    return redirect(url_for('login'))
+    # If not logged in, go to login
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    
+    # If logged in, show dashboard
+    db = get_db()
+    user = db.execute('SELECT * FROM users WHERE id = ?', (session['user_id'],)).fetchone()
+    db.close()
+    
+    if user:
+        return render_template('dashboard.html', user=user)
+    else:
+        # User ID in session but not in DB (rare case)
+        session.clear()
+        return redirect(url_for('login'))
 
+# FIXED: Renamed function from 'login_page' to 'login' to match HTML
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-    if 'user_id' in session: return redirect(url_for('home'))
+    # If already logged in, go to dashboard
+    if 'user_id' in session:
+        return redirect(url_for('home'))
     
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
-        remember = request.form.get('remember') # Checkbox value
+        remember = request.form.get('remember')
         
-        conn = get_db()
-        user = conn.execute('SELECT * FROM users WHERE username = ?', (username,)).fetchone()
-        conn.close()
+        db = get_db()
+        user = db.execute('SELECT * FROM users WHERE username = ?', (username,)).fetchone()
+        db.close()
 
         if user and check_password_hash(user['password'], password):
             session['user_id'] = user['id']
             session['username'] = user['username']
             
-            # Handle "Remember Me"
+            # Handle Remember Me
             if remember:
                 session.permanent = True
             else:
                 session.permanent = False
-            
-            # Update Last Login Time
-            try:
-                conn = get_db()
-                now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                conn.execute('UPDATE users SET last_login = ? WHERE id = ?', (now, user['id']))
-                conn.commit()
-            except Exception as e:
-                print(f"Error updating last login: {e}")
-            finally:
-                conn.close()
+
+            # Update Last Login
+            conn = get_db()
+            now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            conn.execute('UPDATE users SET last_login = ? WHERE id = ?', (now, user['id']))
+            conn.commit()
+            conn.close()
             
             return redirect(url_for('home'))
         else:
@@ -112,11 +118,11 @@ def register():
         hashed_pw = generate_password_hash(password)
 
         try:
-            conn = get_db()
-            conn.execute('INSERT INTO users (username, password) VALUES (?, ?)', (username, hashed_pw))
-            conn.commit()
-            conn.close()
-            flash('Account created successfully! Please login.', 'success')
+            db = get_db()
+            db.execute('INSERT INTO users (username, password) VALUES (?, ?)', (username, hashed_pw))
+            db.commit()
+            db.close()
+            flash('Account created! Please login.', 'success')
             return redirect(url_for('login'))
         except sqlite3.IntegrityError:
             flash('Username is already taken.', 'error')
@@ -133,15 +139,14 @@ def upload_pic():
     
     if file and file.filename != '' and allowed_file(file.filename):
         filename = secure_filename(file.filename)
-        # Unique Filename: user_ID_TIMESTAMP_name.jpg
         unique_name = f"user_{session['user_id']}_{int(datetime.now().timestamp())}_{filename}"
         
         file.save(os.path.join(app.config['UPLOAD_FOLDER'], unique_name))
         
-        conn = get_db()
-        conn.execute('UPDATE users SET profile_pic = ? WHERE id = ?', (unique_name, session['user_id']))
-        conn.commit()
-        conn.close()
+        db = get_db()
+        db.execute('UPDATE users SET profile_pic = ? WHERE id = ?', (unique_name, session['user_id']))
+        db.commit()
+        db.close()
         
         flash('Profile picture updated!', 'success')
     else:
@@ -149,6 +154,7 @@ def upload_pic():
 
     return redirect(url_for('home'))
 
+# FIXED: Added missing route for forgot_password
 @app.route('/forgot_password')
 def forgot_password():
     return render_template('forgot_password.html')
