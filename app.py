@@ -43,11 +43,9 @@ with app.app_context():
 
 @app.route('/')
 def home():
-    # 1. لو مش مسجل أصلاً -> روح login
     if 'user_id' not in session:
         return redirect(url_for('login'))
     
-    # 2. لو مسجل، نتأكد إنك موجود في الداتابيز
     db = get_db()
     user = db.execute('SELECT * FROM users WHERE id = ?', (session['user_id'],)).fetchone()
     db.close()
@@ -55,8 +53,7 @@ def home():
     if user:
         return render_template('dashboard.html', user=user)
     else:
-        # 3. صمام الأمان: لو السيشن موجود بس اليوزر اتمسح -> امسح السيشن وروح login
-        # (دي اللي كانت بتعمل Loop)
+      
         session.clear()
         return redirect(url_for('login'))
 
@@ -75,7 +72,6 @@ def login():
 
         if user and check_password_hash(user['password'], password):
             session['user_id'] = user['id']
-            # تحديث وقت الدخول
             conn = get_db()
             now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             conn.execute('UPDATE users SET last_login = ? WHERE id = ?', (now, user['id']))
