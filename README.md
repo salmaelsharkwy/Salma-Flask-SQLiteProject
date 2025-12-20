@@ -1,94 +1,156 @@
-# 🛡️ SalmaGuard Auth System
+# 🛡️ SalmaGuard - Flask Authentication System
 
-![Project Banner](static/images/wallpaper.jpg)
+A modern, secure authentication platform built with Flask and SQLite featuring user management, activity tracking, and a premium glassmorphism UI.
 
-> A modern, secure, and fully responsive Authentication System built with Python Flask. Featuring a premium Glassmorphism UI, Dark Mode, and a dynamic user dashboard.
-
----
-
-## 🌟 Key Features
-
-* **🔐 Secure Authentication:** Robust Login & Registration system with password hashing (Werkzeug).
-* **🎨 Glassmorphism UI:** Stunning visual design using modern CSS backdrop-filters.
-* **🌓 Dark/Light Mode:** Toggle themes instantly with local preference saving.
-* **📊 User Dashboard:** Dynamic dashboard showing real-time stats, last login, and activity logs.
-* **📸 Profile Management:** Users can upload profile pictures or get an auto-generated letter avatar.
-* **💪 Password Strength Meter:** Real-time visual feedback on password complexity.
-* **👁️ UX Enhancements:** Show/Hide password toggles and auto-dismissing alerts.
-* **📱 Fully Responsive:** Works perfectly on desktops, tablets, and mobile devices.
+![Python](https://img.shields.io/badge/Python-3.8+-blue?style=flat-square)
+![Flask](https://img.shields.io/badge/Flask-3.0.0-green?style=flat-square)
+![SQLite](https://img.shields.io/badge/SQLite-3-orange?style=flat-square)
+![License](https://img.shields.io/badge/License-MIT-yellow?style=flat-square)
 
 ---
 
-## 🛠️ Tech Stack
+## ✨ Features
 
-* **Backend:** Python 3.x, Flask
-* **Database:** SQLite3 (Built-in)
-* **Frontend:** HTML5, CSS3 (Custom Variables), JavaScript (Vanilla)
-* **Security:** Werkzeug Security, CSRF Protection logic
+### Core Functionality
+- 🔐 **Secure Authentication** - Password hashing (PBKDF2-SHA256), session management
+- 👤 **User Profiles** - Profile picture upload, username/email editing
+- 📊 **Statistics Dashboard** - Real-time session tracking, action counting
+- 📝 **Activity Logging** - Automatic tracking of all user actions
+- 🔍 **Live Search** - Filter activity feed without page reload
+- ⚡ **Quick Actions** - One-click access to common operations
+- 🗑️ **Account Management** - Secure account deletion with confirmation
+
+### UI/UX Design
+- 🎨 **Glassmorphism Design** - Modern, frosted-glass aesthetic
+- 🌓 **Dark/Light Theme** - Toggle with localStorage persistence
+- 📱 **Fully Responsive** - Optimized for mobile, tablet, desktop
+- ✨ **Smooth Animations** - Professional transitions and effects
+- 💪 **Password Strength** - Real-time validation feedback
 
 ---
 
-## 🚀 Getting Started
-
-Follow these steps to get the project running on your local machine.
+## 🚀 Quick Start
 
 ### Prerequisites
-
-* Python 3.8 or higher installed.
-* Git installed.
+- Python 3.8 or higher
+- pip package manager
 
 ### Installation
 
-1.  **Clone the repository:**
-    ```bash
-    git clone [https://github.com/YOUR_USERNAME/SalmaGuard-Auth.git](https://github.com/YOUR_USERNAME/SalmaGuard-Auth.git)
-    cd SalmaGuard-Auth
-    ```
+1. Clone repository
+git clone https://github.com/salmaelsharkwy/Salma-Flask-SQLiteProject.git
+cd Salma-Flask-SQLiteProject
 
-2.  **Create a Virtual Environment (Recommended):**
-    ```bash
-    # Windows
-    python -m venv venv
-    venv\Scripts\activate
+2. Create virtual environment
+python -m venv venv
 
-    # Mac/Linux
-    python3 -m venv venv
-    source venv/bin/activate
-    ```
+3. Activate virtual environment
+Windows:
+venv\Scripts\activate
 
-3.  **Install Dependencies:**
-    ```bash
-    pip install -r requirements.txt
-    ```
+Mac/Linux:
+source venv/bin/activate
 
-4.  **Setup Environment:**
-    * Ensure you have a folder named `static/images` and `static/profile_pics`.
-    * Ensure `wallpaper.jpg` exists in `static/images`.
+4. Install dependencies
+pip install -r requirements.txt
 
-5.  **Run the Application:**
-    ```bash
-    python app.py
-    ```
+5. Run application
+python app.py
 
-6.  **Open in Browser:**
-    Go to `http://127.0.0.1:5000`
+
+### Access Application
+Open browser: [**http://127.0.0.1:5000**](http://127.0.0.1:5000)
 
 ---
 
-## 📂 Project Structure
+## 📁 Project Structure
 
-```text
-SalmaGuard-Auth/
-├── app.py                 # Application Entry Point
-├── database.db            # Auto-generated SQLite Database
-├── requirements.txt       # Project Dependencies
+Salma-Flask-SQLiteProject/
+├── app.py # Main Flask application
+├── requirements.txt # Python dependencies
+├── database.db # SQLite database (auto-generated)
 ├── static/
-│   ├── theme.css          # Main Styling
-│   ├── script.js          # UI Logic
-│   ├── images/            # Assets
-│   └── profile_pics/      # User Uploads
+│ ├── theme.css # Glassmorphism styling
+│ ├── script.js # Client-side functionality
+│ ├── images/ # Background images
+│ └── profile_pics/ # User uploads
 └── templates/
-    ├── base.html          # Layout Skeleton
-    ├── login.html         # Login Page
-    ├── register.html      # Signup Page
-    └── dashboard.html     # User Dashboard
+├── base.html # Master template
+├── login.html # Login page
+├── register.html # Registration page
+├── dashboard.html # User dashboard
+├── profile.html # Profile & activity tracking
+└── forgot_password.html
+
+
+## 💻 Technology Stack
+
+**Backend**
+- Flask 3.0.0 - Web framework
+- SQLite3 - Database
+- Werkzeug 3.0.1 - Security utilities
+
+**Frontend**
+- HTML5, CSS3, JavaScript
+- Font Awesome icons
+- Google Fonts (Outfit)
+
+
+
+## 🚀 Future Enhancements
+
+- [ ] Email verification system
+- [ ] Password reset functionality
+- [ ] Two-factor authentication (2FA)
+- [ ] Export activity data (CSV/JSON)
+- [ ] Advanced analytics dashboard
+- [ ] RESTful API endpoints
+
+---
+
+## 📝 Development Notes
+
+**Total Development Effort**: 40+ hours  
+**Lines of Code**: ~1,500 lines  
+**Files Created**: 10+ templates and modules  
+
+**Major Challenges Solved**:
+1. Real-time session time calculation
+2. Live search without backend queries
+3. Unique profile picture naming
+4. Database integrity with constraints
+
+---
+
+## 🤝 Contributing
+
+Contributions welcome! Please follow these steps:
+
+1. Fork the repository
+2. Create feature branch (`git checkout -b feature-name`)
+3. Commit changes (`git commit -m 'Add feature'`)
+4. Push to branch (`git push origin feature-name`)
+5. Open Pull Request
+
+
+## 👤 Author
+
+**Salma Elsharkwy**  
+GitHub: [@salmaelsharkwy](https://github.com/salmaelsharkwy)
+
+---
+
+## 📞 Support
+
+- 🐛 **Report Bugs**: [Open an issue](https://github.com/salmaelsharkwy/Salma-Flask-SQLiteProject/issues)
+- 💡 **Feature Requests**: [Submit a request](https://github.com/salmaelsharkwy/Salma-Flask-SQLiteProject/issues/new)
+- 📧 **Contact**: Open an issue for questions
+
+
+<div align="center">
+
+**⭐ Star this repository if you found it helpful!**
+
+Built with ❤️ using Flask & Python
+
+</div>

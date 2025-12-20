@@ -3,39 +3,39 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Salma Platform</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <title>SalmaGuard - Secure Platform</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='theme.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
+    {% if session.user_id %}
     <nav class="navbar">
-        <a href="{{ url_for('home') }}" class="logo">
-            <i class="fas fa-shield-alt"></i> Salma
+        <a href="/" class="logo">
+            <i class="fas fa-shield-alt"></i> SalmaGuard
         </a>
         <div class="nav-links">
-            {% if 'user_id' in session %}
-                <a href="{{ url_for('home') }}" class="nav-link"><i class="fas fa-chart-line"></i> Dashboard</a>
-                <a href="{{ url_for('logout') }}" class="nav-link"><i class="fas fa-sign-out-alt"></i> Logout</a>
-            {% else %}
-                <a href="{{ url_for('login') }}" class="nav-link">Login</a>
-                <a href="{{ url_for('register') }}" class="nav-link">Register</a>
-            {% endif %}
-            <button id="theme-toggle" title="Toggle Theme"><i class="fas fa-sun"></i></button>
+            <a href="/" class="nav-link"><i class="fas fa-home"></i> Dashboard</a>
+            <a href="/profile" class="nav-link"><i class="fas fa-user-circle"></i> Profile</a>
+            <button id="theme-toggle"><i class="fas fa-moon"></i></button>
+            <a href="/logout" class="nav-link"><i class="fas fa-sign-out-alt"></i> Logout</a>
         </div>
     </nav>
+    {% endif %}
 
     <div class="main-wrapper">
-        <div class="flash-container">
-            {% with messages = get_flashed_messages(with_categories=true) %}
-                {% if messages %}
-                    {% for category, message in messages %}
-                        <div class="flash {{ category }}">
-                            <i class="fas fa-info-circle"></i> {{ message }}
-                        </div>
-                    {% endfor %}
-                {% endif %}
-            {% endwith %}
-        </div>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+            <div class="flash-container">
+                {% for category, message in messages %}
+                <div class="flash {{ category }}">
+                    <i class="fas fa-{{ 'check-circle' if category == 'success' else 'exclamation-circle' }}"></i>
+                    {{ message }}
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+        {% endwith %}
+        
         {% block content %}{% endblock %}
     </div>
 

@@ -1,0 +1,187 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="dashboard-container">
+    <div class="glass-card">
+        <!-- Profile Header -->
+        <div class="dashboard-header">
+            <div class="profile-section">
+                <div class="avatar-container">
+                    {% if user['profile_pic'] %}
+                    <img src="{{ url_for('static', filename='profile_pics/' + user['profile_pic']) }}" class="profile-img">
+                    {% else %}
+                    <div class="avatar-placeholder">{{ user['username'][0] }}</div>
+                    {% endif %}
+                </div>
+            </div>
+            <div style="flex: 1;">
+                <h2><i class="fas fa-user-circle"></i> My Profile</h2>
+                <p class="subtitle">Complete account overview and activity tracking</p>
+            </div>
+        </div>
+
+        <!-- Statistics Grid -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <i class="fas fa-user stat-icon"></i>
+                <div>
+                    <span class="stat-value">{{ user['username'] }}</span>
+                    <span class="stat-label">Username</span>
+                </div>
+            </div>
+            <div class="stat-card">
+                <i class="fas fa-chart-line stat-icon"></i>
+                <div>
+                    <span class="stat-value">{{ total_actions }}</span>
+                    <span class="stat-label">Total Actions</span>
+                </div>
+            </div>
+            <div class="stat-card">
+                <i class="fas fa-clock stat-icon"></i>
+                <div>
+                    <span class="stat-value">{{ session_minutes }} min</span>
+                    <span class="stat-label">Session Time</span>
+                </div>
+            </div>
+            <div class="stat-card">
+                <i class="fas fa-calendar-alt stat-icon"></i>
+                <div>
+                    <span class="stat-value">{{ user['created_at'].split()[0] if user['created_at'] else 'N/A' }}</span>
+                    <span class="stat-label">Member Since</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions Panel -->
+        <h3 style="margin-bottom: 15px;"><i class="fas fa-bolt"></i> Quick Actions</h3>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-bottom: 30px;">
+            <a href="/" style="text-decoration: none;">
+                <div class="action-btn">
+                    <i class="fas fa-home"></i>
+                    <span>Dashboard</span>
+                </div>
+            </a>
+            <a href="/upload_pic" onclick="document.getElementById('file-input').click(); return false;" style="text-decoration: none;">
+                <div class="action-btn">
+                    <i class="fas fa-camera"></i>
+                    <span>Change Photo</span>
+                </div>
+            </a>
+            <a href="/clear_activity" onclick="return confirm('Clear all activity history?')" style="text-decoration: none;">
+                <div class="action-btn">
+                    <i class="fas fa-trash-alt"></i>
+                    <span>Clear History</span>
+                </div>
+            </a>
+            <a href="/delete_account" onclick="return confirm('⚠️ Delete account permanently? This cannot be undone!')" style="text-decoration: none;">
+                <div class="action-btn" style="border-color: var(--danger);">
+                    <i class="fas fa-user-times" style="color: var(--danger);"></i>
+                    <span>Delete Account</span>
+                </div>
+            </a>
+        </div>
+        <form method="POST" action="/upload_pic" enctype="multipart/form-data" style="display: none;" id="upload-form">
+            <input type="file" name="profile_pic" id="file-input" accept="image/*" onchange="this.form.submit()">
+        </form>
+
+        <!-- Edit Profile Section -->
+        <h3 style="margin-bottom: 15px;"><i class="fas fa-edit"></i> Edit Profile</h3>
+        <div style="background: rgba(255,255,255,0.03); padding: 20px; border-radius: 12px; border: 1px solid var(--glass-border); margin-bottom: 30px;">
+            <form method="POST" action="/update_profile">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                    <div class="input-group">
+                        <label>Username</label>
+                        <input type="text" name="username" placeholder="New username" value="{{ user['username'] }}" style="padding-left: 15px;">
+                    </div>
+                    <div class="input-group">
+                        <label>Email</label>
+                        <input type="email" name="email" placeholder="your@email.com" value="{{ user['email'] or '' }}" style="padding-left: 15px;">
+                    </div>
+                </div>
+                <button type="submit" class="btn" style="width: auto; padding: 10px 25px; margin-top: 10px;">
+                    <i class="fas fa-save"></i> Save Changes
+                </button>
+            </form>
+        </div>
+
+        <!-- Activity Feed with Search -->
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+            <h3><i class="fas fa-history"></i> Activity Feed ({{ logs|length }})</h3>
+            <input type="text" id="searchActivity" placeholder="🔍 Search..." onkeyup="filterActivity()" 
+                   style="width: 200px; padding: 8px 12px; border-radius: 8px; background: rgba(0,0,0,0.2); 
+                          border: 1px solid var(--glass-border); color: inherit; outline: none;">
+        </div>
+
+        <div style="max-height: 400px; overflow-y: auto; border: 1px solid var(--glass-border); border-radius: 12px; background: rgba(0,0,0,0.1);">
+            <table class="modern-table" id="activityTable">
+                <thead>
+                    <tr>
+                        <th style="position: sticky; top: 0; background: rgba(0,0,0,0.4); backdrop-filter: blur(10px);">Action</th>
+                        <th style="position: sticky; top: 0; background: rgba(0,0,0,0.4); backdrop-filter: blur(10px);">Timestamp</th>
+                        <th style="position: sticky; top: 0; background: rgba(0,0,0,0.4); backdrop-filter: blur(10px);">Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for log in logs %}
+                    <tr class="activity-row">
+                        <td>
+                            <i class="fas fa-circle" style="color: var(--primary); font-size: 8px; margin-right: 10px;"></i>
+                            {{ log['action'] }}
+                        </td>
+                        <td>{{ log['timestamp'] }}</td>
+                        <td><span class="status completed">Done</span></td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="3" style="text-align: center; color: var(--text-muted); padding: 30px;">
+                            <i class="fas fa-inbox" style="font-size: 2rem; display: block; margin-bottom: 10px;"></i>
+                            No activity recorded yet
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Account Info Section -->
+        <h3 style="margin-top: 30px; margin-bottom: 15px;"><i class="fas fa-info-circle"></i> Account Details</h3>
+        <div style="background: rgba(255,255,255,0.03); padding: 20px; border-radius: 12px; border: 1px solid var(--glass-border);">
+            <div style="display: grid; gap: 15px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--glass-border);">
+                    <span style="color: var(--text-muted);"><i class="fas fa-user"></i> Username</span>
+                    <span style="font-weight: 600;">{{ user['username'] }}</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--glass-border);">
+                    <span style="color: var(--text-muted);"><i class="fas fa-envelope"></i> Email</span>
+                    <span style="font-weight: 600;">{{ user['email'] if user['email'] else 'Not set' }}</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--glass-border);">
+                    <span style="color: var(--text-muted);"><i class="fas fa-image"></i> Profile Picture</span>
+                    <span class="status {{ 'completed' if user['profile_pic'] else 'pending' }}">{{ 'Uploaded' if user['profile_pic'] else 'Default' }}</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--glass-border);">
+                    <span style="color: var(--text-muted);"><i class="fas fa-shield-alt"></i> Account Security</span>
+                    <span class="status completed">Secured</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 0;">
+                    <span style="color: var(--text-muted);"><i class="fas fa-calendar-check"></i> Last Login</span>
+                    <span style="font-weight: 600;">{{ user['last_login'] if user['last_login'] else 'First login' }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function filterActivity() {
+    const input = document.getElementById('searchActivity');
+    const filter = input.value.toLowerCase();
+    const rows = document.querySelectorAll('.activity-row');
+    
+    rows.forEach(row => {
+        const text = row.textContent.toLowerCase();
+        row.style.display = text.includes(filter) ? '' : 'none';
+    });
+}
+</script>
+{% endblock %}

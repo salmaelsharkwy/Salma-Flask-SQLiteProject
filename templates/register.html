@@ -2,37 +2,44 @@
 
 {% block content %}
 <div class="glass-card">
-    <h2><i class="fas fa-user-plus"></i> Create Account</h2>
+    <h2><i class="fas fa-user-plus"></i> Register</h2>
     <p class="subtitle">Join the Salma Platform today.</p>
-
+    
     <form method="POST">
         <div class="input-group">
             <label>Username</label>
             <i class="fas fa-user input-icon"></i>
-            <input type="text" name="username" required placeholder="Choose a username">
+            <input type="text" name="username" placeholder="Choose a username" required>
         </div>
-
+        
+        <div class="input-group">
+            <label>Email (Optional)</label>
+            <i class="fas fa-envelope input-icon"></i>
+            <input type="email" name="email" placeholder="your@email.com">
+        </div>
+        
         <div class="input-group">
             <label>Password</label>
             <i class="fas fa-lock input-icon"></i>
-            <input type="password" name="password" id="reg_pass" required placeholder="Create password">
+            <input type="password" id="reg_pass" name="password" placeholder="Create a password" required>
             <i class="fas fa-eye toggle-password" onclick="togglePass('reg_pass')"></i>
-            
             <div class="strength-meter"></div>
         </div>
-
+        
         <div class="input-group">
             <label>Confirm Password</label>
             <i class="fas fa-lock input-icon"></i>
-            <input type="password" name="confirm_password" id="confirm_pass" required placeholder="Repeat password">
-            <i class="fas fa-eye toggle-password" onclick="togglePass('confirm_pass')"></i>
+            <input type="password" id="confirm" name="confirm_password" placeholder="Confirm your password" required>
+            <i class="fas fa-eye toggle-password" onclick="togglePass('confirm')"></i>
         </div>
-
-        <button type="submit" class="btn">Register <i class="fas fa-rocket"></i></button>
+        
+        <button type="submit" class="btn">
+            <i class="fas fa-user-plus"></i> Create Account
+        </button>
     </form>
-
+    
     <p style="margin-top: 20px; color: var(--text-muted);">
-        Already have an account? <a href="{{ url_for('login') }}" style="color: var(--primary);">Login here</a>
+        Already have an account? <a href="/login" style="color: var(--primary); text-decoration: none;">Login here</a>
     </p>
 </div>
 {% endblock %}
